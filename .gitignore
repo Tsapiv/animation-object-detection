@@ -4,3 +4,4 @@ google_doodle_dataset/data
 *-exp
 MNIST
 */__pycache__
+lightning_logs/
