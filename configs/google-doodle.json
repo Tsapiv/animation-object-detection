@@ -1,0 +1,8 @@
+{
+  "type": "google",
+  "data_path": "google_doodle_dataset/data",
+  "max_epochs": 30,
+  "weights_save_path": "google-exp",
+  "gpus": 2,
+  "num_processes": 2
+}

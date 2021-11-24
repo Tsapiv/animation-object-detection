@@ -1,3 +1,6 @@
-data/
-venv/
-.idea/
+.idea
+cifar-10-batches-py
+google_doodle_dataset/data
+*-exp
+MNIST
+*/__pycache__
