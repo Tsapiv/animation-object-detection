@@ -7,8 +7,9 @@ from torchvision.utils import make_grid
 
 if __name__ == '__main__':
     vae = VAE.load_from_checkpoint(
-        checkpoint_path='mnist-exp/lightning_logs/version_7/checkpoints/epoch=29-step=22499.ckpt')
-    shape = (32, 256)
+        checkpoint_path='google-exp/exp-epoch=48-val_loss=0.03.ckpt')
+    vae.eval()
+    shape = (512, 256)
     num_preds = 16
     p = torch.distributions.Normal(torch.zeros(*shape), torch.ones(*shape))
     z = p.rsample()
