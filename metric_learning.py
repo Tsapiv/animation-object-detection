@@ -141,3 +141,4 @@ if __name__ == '__main__':
         saver.update(model, loss, epoch)
         metrics.append(distance_validation(model, test_loader))
         scheduler.step()
+    np.save(f'resnet-triplets/training.npy', np.array(metrics))
