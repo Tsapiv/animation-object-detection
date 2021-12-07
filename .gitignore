@@ -5,3 +5,4 @@ google_doodle_dataset/data
 MNIST
 */__pycache__
 lightning_logs/
+raw
