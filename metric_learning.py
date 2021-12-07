@@ -21,6 +21,7 @@ class ModelSaver:
         self.root = root
         self.minimize = minimize
         self.rank = []
+        os.makedirs(self.root, exist_ok=True)
 
     def update(self, model, criterion, epoch):
         if len(self.rank) < self.topk:
