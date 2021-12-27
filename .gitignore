@@ -1,6 +1,6 @@
 .idea
 cifar-10-batches-py
-google_doodle_dataset/data
+google_doodle_dataset/google-doodle-9/data
 *-exp
 MNIST
 */__pycache__

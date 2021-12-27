@@ -27,10 +27,6 @@ class GoogleDoodleDataset(Dataset, ABC):
         self.data, self.targets = self._load_data()
 
     def _load_data(self):
-        # data = [np.load(os.path.join(self.root, f)) for f in listdir(self.root) if f.endswith('.npy')]
-        # targets = [np.full(len(category), idx) for idx, category in enumerate(data)]
-        # self.classes = len(data)
-        # return np.reshape(np.vstack(data), (-1, 28, 28)), np.hstack(targets)
         filenames = [os.path.join(self.root, f) for f in listdir(self.root) if
                      f.endswith('.npy') and ('train' if self.train else 'test') in f]
         if len(filenames) != 2:

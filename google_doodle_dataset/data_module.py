@@ -6,7 +6,7 @@ from utils.dataset import CentralPad, channel_expander
 from .dataset import GoogleDoodleDataset
 from pl_bolts.utils import _TORCHVISION_AVAILABLE
 from pl_bolts.utils.warnings import warn_missing_pkg
-
+from utils import default_transform
 if _TORCHVISION_AVAILABLE:
     from torchvision import transforms as transform_lib
 else:  # pragma: no cover
@@ -69,13 +69,4 @@ class GoogleDoodleDataModule(VisionDataModule, ABC):
         return self.dataset_train.num_classes()
 
     def default_transforms(self) -> Callable:
-        base_transforms = transform_lib.Compose([transform_lib.ToTensor(),
-                                                 CentralPad((32, 32)),
-                                                 transform_lib.Lambda(channel_expander)]
-                                                )
-        transforms = transform_lib.Compose(
-            [base_transforms,
-             transform_lib.Normalize(mean=(0.5,), std=(0.5,))]) \
-            if self.normalize else base_transforms
-
-        return transforms
+        return default_transform(self.normalize)
