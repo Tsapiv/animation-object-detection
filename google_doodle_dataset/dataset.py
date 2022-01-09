@@ -2,7 +2,7 @@ import os
 from abc import ABC
 from os import listdir
 from typing import Optional, Callable
-
+from sklearn.model_selection import train_test_split
 import numpy as np
 from torch.utils.data import Dataset
 
@@ -16,6 +16,7 @@ class GoogleDoodleDataset(Dataset, ABC):
             transform: Optional[Callable] = None,
             target_transform: Optional[Callable] = None,
             classes: int = 10,
+            ratio: float = 0.9999,
             *args, **kwargs
     ) -> None:
         super(GoogleDoodleDataset, self).__init__()
@@ -24,6 +25,7 @@ class GoogleDoodleDataset(Dataset, ABC):
         self.transform = transform
         self.target_transform = target_transform
         self.classes = classes
+        self.ratio = ratio
         self.data, self.targets = self._load_data()
 
     def _load_data(self):
@@ -32,7 +34,8 @@ class GoogleDoodleDataset(Dataset, ABC):
         if len(filenames) != 2:
             raise RuntimeError('Dataset root directory (lacks of) / (contains redundant) files')
         data = list(map(np.load, filenames))
-        return data[::-1] if 'labels' in filenames[0] else data
+        _, data0, _, data1 = train_test_split(*data, test_size=self.ratio)
+        return (data1, data0) if 'labels' in filenames[0] else (data0, data1)
 
     def num_classes(self):
         return self.classes

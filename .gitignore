@@ -6,3 +6,4 @@ MNIST
 */__pycache__
 lightning_logs/
 raw
+exp

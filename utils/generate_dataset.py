@@ -14,6 +14,7 @@ def parse_options():
     parser.add_argument('--split-ratio', type=float, default=0.8)
     parser.add_argument('--output-dir', type=str, default='.')
     parser.add_argument('--skip-mapping', action='store_false')
+    parser.add_argument('--total-size', type=int, required=False)
     return parser.parse_args()
 
 
@@ -34,7 +35,10 @@ if __name__ == '__main__':
     train_label = []
     test_label = []
     for i, lab in enumerate(targets):
-        idx = np.arange(0, len(lab))
+        last_idx = len(lab)
+        if parameters.total_size is not None:
+            last_idx = min(parameters.total_size // len(targets), last_idx)
+        idx = np.arange(0, last_idx)
         np.random.shuffle(idx)
         delim = int(len(idx) * parameters.split_ratio)
         train_idx, test_idx = idx[:delim], idx[delim:]
