@@ -18,7 +18,6 @@ if __name__ == '__main__':
     )
     trainer = pl.Trainer(max_epochs=config['max_epochs'],
                          callbacks=[checkpoint_callback],
-                         gpus=config['gpus'],
-                         strategy='ddp'
+                         gpus=config['gpus']
                          )
     trainer.fit(model, datamodule)
