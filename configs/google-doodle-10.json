@@ -1,9 +1,9 @@
 {
   "type": "google-doodle",
   "data_path": "google_doodle_dataset/google-doodle-cifar10/data",
-  "max_epochs": 50,
+  "max_epochs": 200,
   "weights_save_path": "exp/google-exp-10",
-  "gpus": 1,
+  "gpus": [1],
   "num_workers": 4,
-  "batch_size": 1024
+  "batch_size": 384
 }
