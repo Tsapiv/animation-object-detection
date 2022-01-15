@@ -69,7 +69,7 @@ def mAP(descriptor, labels):
     return metric.compute()
 
 
-def clustering_accuracy(model: Module, test_loader: DataLoader, device, nth=100, test_size=0.3):
+def clustering_accuracy(model: Module, test_loader: DataLoader, device, nth=100, test_size=0.3, classes=10):
     model.eval()
     X = torch.FloatTensor().to(device)
     labels = torch.LongTensor()
@@ -80,7 +80,7 @@ def clustering_accuracy(model: Module, test_loader: DataLoader, device, nth=100,
         labels = torch.cat((labels, target))
     X_train, X_test, y_train, y_test = train_test_split(X.detach().numpy(), labels.numpy(),
                                                         test_size=test_size)
-    classes = test_loader.dataset.num_classes()
+    # classes = test_loader.dataset.num_classes()
     km = KMeans(n_clusters=classes)
     #
     # # Train the model using the training sets

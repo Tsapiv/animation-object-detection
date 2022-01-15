@@ -1,0 +1,9 @@
+{
+  "type": "google-doodle",
+  "data_path": "google_doodle_dataset/google-doodle-9/data",
+  "max_epochs": 50,
+  "weights_save_path": "exp/google-exp-10",
+  "gpus": 1,
+  "num_workers": 4,
+  "batch_size": 1024
+}

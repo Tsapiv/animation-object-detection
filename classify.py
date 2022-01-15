@@ -14,6 +14,8 @@ from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import metrics
+from triplets.model import ResNet18Encoder
+from vae.model import WrappedVAE
 
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -26,22 +28,22 @@ from utils import parse_config, default_transform
 from plotly import graph_objects as go
 
 if __name__ == '__main__':
-    # class_map = np.array(['airplane', 'bicycle', 'bird', 'blueberry', 'book', 'bulldozer', 'cat', 'crab', 'hand', 'octagon'])
-    class_map = np.array(['known'] * 9 + ['unknown'])
+    class_map = np.array(['airplanes', 'cars', 'birds', 'cats', 'deer', 'dogs', 'frogs', 'horses', 'ships','trucks'])
+    # class_map = np.array(['known'] * 9 + ['unknown'])
 
-    vae = torch.load('exp/real-resnet18-triplets-exp-9/epoch-10-2.7731600012364955e-08.pth', map_location='cpu')#VAE.load_from_checkpoint(checkpoint_path='exp/google-exp-9/exp-epoch=49-val_loss=0.03.ckpt', map_location='cpu')#
+    vae = VAE.load_from_checkpoint(checkpoint_path='exp/google-exp-9/exp-epoch=49-val_loss=0.03.ckpt', map_location='cpu')#ResNet18Encoder.load_from_checkpoint(checkpoint_path='exp/google-exp-10-wrapped/exp-epoch=49-val_loss=0.00.ckpt', map_location='cpu')
     vae.eval()
 
-    config = parse_config()
-    batch_size = 64
+    # config = parse_config()
+    batch_size = 1024
     extra_size = 100
     transforms = default_transform()
     # extra_class = torch.stack(
     #     [transforms(bit) for bit in np.reshape(np.load('full_numpy_bitmap_octagon.npy')[:extra_size], (-1, 28, 28))])
     # extra_labels = torch.full((extra_size,), 9)
-    label_mask = ['circle'] * batch_size + ['square'] * extra_size
-    dataset_test = GoogleDoodleDataset('google_doodle_dataset/google-doodle-9/data', train=False, transform=transforms, classes=9, ratio=0.02)
-    loader = DataLoader(dataset_test, batch_size=batch_size, shuffle=True, pin_memory=True)
+    label_mask = ['circle'] * batch_size# + ['square'] * extra_size
+    dataset_test = GoogleDoodleDataset('google_doodle_dataset/google-doodle-9/data', train=False, transform=transforms, classes=9)
+    loader = DataLoader(dataset_test, batch_size=batch_size, shuffle=True)
     # knn = KMeans(n_clusters=9)
     # correct = 0
     # total = 0
@@ -68,15 +70,17 @@ if __name__ == '__main__':
 
     # summary(vae, (3, 32, 32))
     # print(len(loader))
-    print(clustering_accuracy(vae, loader, 'cpu', nth=1))
-
+    # print(clustering_accuracy(vae.encoder, loader, 'cpu', nth=1))
+    #
     data, labels = next(iter(loader))
+    X = vae.encoder(data)
+    # print(mAP(X, labels))
     # data = torch.cat((data, extra_class), dim=0)
     # labels = torch.cat((labels, extra_labels), dim=-1)
-    print(data.shape, labels.shape)
+    # print(data.shape, labels.shape, X.shape)
 
     # X = vae(data)
-    X = vae.encoder(data)
+
     # X = torch.concat([vae.fc_mu(base), vae.fc_var(base)], dim=-1)
     # X_train, X_test, y_train, y_test = train_test_split(X.detach().numpy(), labels.numpy(),
     #                                                   test_size=0.3)  # 70% training and 30% test
@@ -112,7 +116,7 @@ if __name__ == '__main__':
     # fig.write_image('figure2.png', scale=4)
     # fig.show()
 
-    fig = px.scatter_3d(x=X_emb[:, 0], y=X_emb[:, 1], z=X_emb[:, 2], color=class_map[labels.detach().numpy()], symbol=label_mask)
+    fig = px.scatter_3d(x=X_emb[:, 0], y=X_emb[:, 1], z=X_emb[:, 2], color=class_map[labels.detach().numpy()])
     fig.update_traces(marker_size=5)
     # fig.write_image('figure.png', scale=4)
     fig.show()
