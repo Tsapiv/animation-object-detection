@@ -22,4 +22,6 @@ $ python random_generation.py --checkout_path path/to/models/weights <VAE only>
 
 ### Where to get pretrained models - [here](https://drive.google.com/drive/folders/1P2zstNKqi1ut_D2emHOwIYmfynfTA-U9?usp=sharing)
 
+### Where to get Sketch CIFAR-10 - [here](https://drive.google.com/file/d/1xEjIIR35wmcwdwiYjAmfVob1ParS2a3g/view?usp=sharing)
+
 ### Where to get *.npy files of Google doodle dataset - [here](https://console.cloud.google.com/storage/browser/quickdraw_dataset/full/numpy_bitmap;tab=objects?prefix=&forceOnObjectsSortingFiltering=true)
