@@ -10,6 +10,8 @@ def parse_config():
     parser.add_argument('--num_processes', type=int, required=False)
     parser.add_argument('--data_path', type=str, required=False)
     parser.add_argument('--type', type=str, required=False)
+    parser.add_argument('--model_type', type=str, help='[vea|cnn]', required=False)
+    parser.add_argument('--checkpoint_path', type=str, required=False)
     parser.add_argument('--config', type=str, required=True)
 
     args = vars(parser.parse_args())

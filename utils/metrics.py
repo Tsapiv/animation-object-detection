@@ -8,13 +8,6 @@ from torchmetrics import RetrievalMAP
 
 
 def rank_validation(model, test_loader, step=100, device='cuda:0'):
-    """
-    Compute accuracy on the test set
-    model: network
-    test_loader: test_loader loading images and labels in batches
-    step: step to iterate over images (for faster evaluation)
-    """
-
     model.eval()
     des = torch.FloatTensor().to(device)
     labels = torch.LongTensor()
@@ -34,27 +27,6 @@ def rank_validation(model, test_loader, step=100, device='cuda:0'):
     minrank1, minrank3 = (np.array(minrank_positive) < 1).mean(), (np.array(minrank_positive) < 3).mean()
     return minrank1, minrank3
 
-
-# def mAP(model: Module, test_loader: DataLoader, device, nth=100):
-#     model.eval()
-#     model = model.to(device)
-#     des = torch.FloatTensor().to(device)
-#     labels = torch.LongTensor()
-#     for batch_idx, (data, target) in enumerate(test_loader):
-#         if batch_idx == len(test_loader) // nth:
-#             break
-#         des = torch.cat((des, model(data.to(device)).detach()))
-#         labels = torch.cat((labels, target))
-#
-#     # compute all pair-wise distances
-#     cdistances = -torch.cdist(des, des)
-#     metric = RetrievalMAP()
-#     # find rank of closest positive image (using each descriptor as a query)
-#     for idx, prediction in enumerate(cdistances):
-#         target = labels == labels[idx]
-#         indeces = torch.LongTensor(len(labels)).fill_(idx)
-#         metric.update(prediction, target, indeces)
-#     return metric.compute()
 
 def mAP(descriptor, labels):
     # compute all pair-wise distances
@@ -78,15 +50,11 @@ def clustering_accuracy(model: Module, test_loader: DataLoader, device, nth=100,
             break
         X = torch.cat((X, model(data.to(device)).detach()))
         labels = torch.cat((labels, target))
+    print(X.shape)
     X_train, X_test, y_train, y_test = train_test_split(X.detach().numpy(), labels.numpy(),
                                                         test_size=test_size)
-    # classes = test_loader.dataset.num_classes()
     km = KMeans(n_clusters=classes)
-    #
-    # # Train the model using the training sets
     km.fit(X_train)
-    #
-    # # Predict the response for test dataset
     correct = 0
     total = 0
     for class_ in range(classes):
