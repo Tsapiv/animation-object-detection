@@ -7,7 +7,8 @@ MODULES = {
     'mnist': EMNISTDataModule,
     'cifar': CIFAR10DataModule,
     'google-doodle': GoogleDoodleDataModule,
-    'google-doodle-wrapped': GoogleDoodleTripletsDataModule
+    'google-doodle-wrapped': GoogleDoodleTripletsDataModule,
+    'hardnet': GoogleDoodleTripletsDataModule
 }
 
 

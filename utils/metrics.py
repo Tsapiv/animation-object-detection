@@ -35,7 +35,7 @@ def mAP(descriptor, labels):
     metric = RetrievalMAP()
     # find rank of closest positive image (using each descriptor as a query)
     for idx, prediction in enumerate(cdistances):
-        target = labels == labels[idx]
+        target: torch.Tensor = (labels == labels[idx])
         indeces = torch.LongTensor(len(labels)).fill_(idx)
         metric.update(prediction, target, indeces)
     return metric.compute()

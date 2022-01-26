@@ -1,5 +1,5 @@
 {
-  "type": "google-doodle-wrapped",
+  "type": "hardnet",
   "data_path": "google_doodle_dataset/google-doodle-cifar10/data",
   "max_epochs": 50,
   "weights_save_path": "exp/google-exp-10-wrapped",

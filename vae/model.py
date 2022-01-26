@@ -1,14 +1,6 @@
-import urllib.parse
 from abc import ABC
-
-import torch
 from pl_bolts.models import VAE
-from pytorch_lightning import LightningModule
-from torch import nn
-
-from pl_bolts import _HTTPS_AWS_HUB
-from pl_bolts.models.autoencoders.components import resnet18_encoder
-from triplets import mAP
+from utils import mAP
 
 
 class WrappedVAE(VAE, ABC):

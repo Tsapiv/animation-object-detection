@@ -1,12 +1,15 @@
 import urllib.parse
+
+import numpy as np
 import torch
 from pl_bolts.models import VAE
 from pytorch_lightning import LightningModule
+from pytorch_lightning.utilities.types import EPOCH_OUTPUT
 from torch import nn
 
 from pl_bolts import _HTTPS_AWS_HUB
 from pl_bolts.models.autoencoders.components import resnet18_encoder
-from triplets import mAP
+from utils import mAP
 
 
 class ResNet18Encoder(LightningModule):
@@ -69,6 +72,9 @@ class ResNet18Encoder(LightningModule):
 
     def validation_step(self, batch, batch_idx):
         return self.step(batch, batch_idx, 'val')
+
+    def validation_epoch_end(self, outputs: EPOCH_OUTPUT) -> None:
+        self.log_dict({f"val_loss": np.mean(outputs)}, on_step=False, on_epoch=True)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)

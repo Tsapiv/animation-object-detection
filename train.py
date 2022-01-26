@@ -1,5 +1,4 @@
 import pytorch_lightning as pl
-from pl_bolts.models.autoencoders import VAE
 from pytorch_lightning.callbacks import ModelCheckpoint
 from fabric import make_datamodule, make_model
 from utils import parse_config

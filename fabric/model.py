@@ -1,9 +1,11 @@
 from triplets import ResNet18Encoder
+from hardnet import HardNet
 from vae.model import WrappedVAE
 
 MODELS = {
     'google-doodle': WrappedVAE,
-    'google-doodle-wrapped': ResNet18Encoder
+    'google-doodle-wrapped': ResNet18Encoder,
+    'hardnet': HardNet
 }
 
 
