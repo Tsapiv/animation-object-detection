@@ -50,7 +50,7 @@ class HardNet(LightningModule, ABC):
         self.corr_penalty = CorrelationPenaltyLoss()
         self.l2norm = L2Norm()
         self.lr = 0.1
-        self.nth = 10
+        self.nth = 2
         self.labels, self.distances = [], []
         self.features = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=(3, 3), padding=1, bias=False),
@@ -84,7 +84,7 @@ class HardNet(LightningModule, ABC):
         loss = loss_HardNet(out_a, out_p)
         if phase == 'train':
             loss += self.corr_penalty(out_a)
-        if batch_idx % self.nth == 0:
+        if batch_idx % self.nth == 0 and phase == 'val':
             mapk = mAP(out_a, label)
             self.log_dict({f"step_{phase}_mapk": mapk}, on_step=True, on_epoch=False)
         if phase == 'val':
