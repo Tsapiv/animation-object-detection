@@ -16,7 +16,7 @@ class GoogleDoodleDataset(Dataset, ABC):
             transform: Optional[Callable] = None,
             target_transform: Optional[Callable] = None,
             classes: int = 10,
-            ratio: float = 0.01,#0.9999,
+            ratio: float = 0.9999,
             *args, **kwargs
     ) -> None:
         super(GoogleDoodleDataset, self).__init__()
