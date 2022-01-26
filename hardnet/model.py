@@ -104,7 +104,7 @@ class HardNet(LightningModule, ABC):
         return self.step(batch, batch_idx, 'train')
 
     def training_epoch_end(self, outputs: EPOCH_OUTPUT) -> None:
-        self.log_dict({f"train_loss": np.mean([out['loss'] for out in outputs])}, on_step=False, on_epoch=True)
+        self.log_dict({f"train_loss": torch.mean(torch.Tensor([out['loss'] for out in outputs]))}, on_step=False, on_epoch=True)
 
     def validation_step(self, batch, batch_idx):
         return self.step(batch, batch_idx, 'val')
@@ -114,7 +114,7 @@ class HardNet(LightningModule, ABC):
         distances = np.vstack(self.distances)
         fpr95 = ErrorRateAt95Recall(labels, 1.0 / (distances + 1e-8))
         self.log_dict({f"val_fpr95": fpr95}, on_step=False, on_epoch=True)
-        self.log_dict({f"val_loss": np.mean(outputs)}, on_step=False, on_epoch=True)
+        self.log_dict({f"val_loss": torch.mean(torch.Tensor(outputs))}, on_step=False, on_epoch=True)
         self.labels, self.distances = [], []
         
     def configure_optimizers(self):
