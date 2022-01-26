@@ -29,7 +29,7 @@ def distance_matrix_vector(anchor, positive):
                        - 2.0 * torch.bmm(anchor.unsqueeze(0), torch.t(positive).unsqueeze(0)).squeeze(0)) + eps)
 
 
-def loss_HardNet(anchor, positive, margin=1.0, batch_reduce='min', loss_type="triplet_margin"):
+def loss_HardNet(anchor: torch.Tensor, positive, margin=1.0, batch_reduce='min', loss_type="triplet_margin"):
     """HardNet margin loss - calculates loss based on distance matrix based on positive distance and closest negative distance.
     """
 
@@ -37,7 +37,7 @@ def loss_HardNet(anchor, positive, margin=1.0, batch_reduce='min', loss_type="tr
     assert anchor.dim() == 2, "Inputd must be a 2D matrix."
     eps = 1e-8
     dist_matrix = distance_matrix_vector(anchor, positive) + eps
-    eye = torch.autograd.Variable(torch.eye(dist_matrix.size(1)))
+    eye = torch.autograd.Variable(torch.eye(dist_matrix.size(1))).to(anchor.device)
 
     # steps to filter out same patches that occur in distance matrix as negatives
     pos1 = torch.diag(dist_matrix)
