@@ -13,7 +13,7 @@ if __name__ == '__main__':
         dirpath=config['weights_save_path'],
         filename="exp-{epoch:02d}-{val_mapk:.2f}",
         save_top_k=3,
-        mode="min",
+        mode="max",
     )
     trainer = pl.Trainer(max_epochs=config['max_epochs'],
                          callbacks=[checkpoint_callback],
