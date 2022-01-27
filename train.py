@@ -9,9 +9,9 @@ if __name__ == '__main__':
                                  num_workers=config['num_workers'])
     model = make_model(config['type'])
     checkpoint_callback = ModelCheckpoint(
-        monitor="step_val_mapk",
+        monitor="val_mapk",
         dirpath=config['weights_save_path'],
-        filename="exp-{epoch:02d}-{step_val_mapk:.2f}",
+        filename="exp-{epoch:02d}-{val_mapk:.2f}",
         save_top_k=3,
         mode="min",
     )

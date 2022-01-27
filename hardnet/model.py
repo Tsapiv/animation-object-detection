@@ -51,6 +51,7 @@ class HardNet(LightningModule, ABC):
         self.l2norm = L2Norm()
         self.lr = 0.1
         self.nth = 2
+        self.size = 512
         self.labels, self.distances = [], []
         self.features = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=(3, 3), padding=1, bias=False),
@@ -79,21 +80,24 @@ class HardNet(LightningModule, ABC):
         return
 
     def step(self, batch, batch_idx, phase):
+        rez = {}
         (a, p, n), label = batch
         out_a, out_p = self(a), self(p)
         loss = loss_HardNet(out_a, out_p)
         if phase == 'train':
             loss += self.corr_penalty(out_a)
         if batch_idx % self.nth == 0 and phase == 'val':
-            mapk = mAP(out_a, label)
+            mapk = mAP(out_a[:self.size], label[:self.size])
+            rez['mapk'] = mapk
             self.log_dict({f"step_{phase}_mapk": mapk}, on_step=True, on_epoch=False)
         if phase == 'val':
             dists = torch.sqrt(torch.sum((out_a - out_p) ** 2, 1))  # euclidean distance
             self.distances.append(dists.data.cpu().numpy().reshape(-1, 1))
             ll = label.data.cpu().numpy().reshape(-1, 1)
             self.labels.append(ll)
+        rez['loss'] = loss
         self.log_dict({f"step_{phase}_loss": loss}, on_step=True, on_epoch=False)
-        return loss
+        return rez
 
     def forward(self, input):
         x_features = self.features(input_norm(input))
@@ -104,7 +108,8 @@ class HardNet(LightningModule, ABC):
         return self.step(batch, batch_idx, 'train')
 
     def training_epoch_end(self, outputs: EPOCH_OUTPUT) -> None:
-        self.log_dict({f"train_loss": torch.mean(torch.Tensor([out['loss'] for out in outputs]))}, on_step=False, on_epoch=True)
+        self.log_dict({f"train_loss": torch.mean(torch.Tensor([out['loss'] for out in outputs]))}, on_step=False,
+                      on_epoch=True)
 
     def validation_step(self, batch, batch_idx):
         return self.step(batch, batch_idx, 'val')
@@ -114,8 +119,11 @@ class HardNet(LightningModule, ABC):
         distances = np.vstack(self.distances)
         fpr95 = ErrorRateAt95Recall(labels, 1.0 / (distances + 1e-8))
         self.log_dict({f"val_fpr95": fpr95}, on_step=False, on_epoch=True)
-        self.log_dict({f"val_loss": torch.mean(torch.Tensor(outputs))}, on_step=False, on_epoch=True)
+        self.log_dict({f"val_loss": torch.mean(torch.Tensor([out['loss'] for out in outputs]))}, on_step=False,
+                      on_epoch=True)
+        self.log_dict({f"val_mapk": torch.mean(torch.Tensor([out['mapk'] for out in outputs]))}, on_step=False,
+                      on_epoch=True)
         self.labels, self.distances = [], []
-        
+
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)
