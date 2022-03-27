@@ -45,8 +45,8 @@ class HardNet(LightningModule, ABC):
     def __init__(self,
                  first_conv: bool = False,
                  maxpool1: bool = False,
-                 nth: int = 100,
-                 lr: float = 1e-4,
+                 nth: int = 2,
+                 lr: float = 1e-2,
                  **kwargs):
         super().__init__()
         # self.save_hyperparameters()
@@ -104,9 +104,9 @@ class HardNet(LightningModule, ABC):
         return rez
 
     def forward(self, input):
-        x_features = self.encoder(input_norm(input))
+        x_features = self.encoder(input)
         x = x_features.view(x_features.size(0), -1)
-        return self.l2norm(x)
+        return x#self.l2norm(x)
 
     def training_step(self, batch, batch_idx):
         return self.step(batch, batch_idx, 'train')
