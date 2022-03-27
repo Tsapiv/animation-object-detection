@@ -14,7 +14,7 @@ import plotly.express as px
 from vae import WrappedVAE
 
 MODELS = {
-    'vea': WrappedVAE,
+    'vae': WrappedVAE,
     'cnn': ResNet18Encoder,
     'hardnet': HardNet
 }
@@ -28,12 +28,12 @@ if __name__ == '__main__':
     batch_size = config['batch_size']
     datamodule: GoogleDoodleDataModule = make_datamodule(config['type'], config['data_path'], batch_size=batch_size)
     datamodule.setup()
-    loader = datamodule.train_dataloader()
+    loader = datamodule.test_dataloader()
     data, labels = next(iter(loader))
-    X = model(data).detach()
+    X = model.encoder(data).detach()
 
     print("mAP:", mAP(X, labels))
-    print("Clustering:", clustering_accuracy(model, loader, 'cpu', nth=1))
+    print("Clustering:", clustering_accuracy(model.encoder, loader, 'cpu', nth=1))
     X_emb = TSNE(n_components=3, learning_rate='auto', init='random').fit_transform(X.detach().numpy())
     fig = px.scatter_3d(x=X_emb[:, 0], y=X_emb[:, 1], z=X_emb[:, 2], color=classes[labels.detach().numpy()])
     fig.update_traces(marker_size=5)

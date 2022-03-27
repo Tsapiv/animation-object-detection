@@ -1,14 +1,12 @@
 from abc import ABC
-from typing import Optional
 
-import numpy as np
 import torch
+from pl_bolts.models.autoencoders import resnet18_encoder
 from pytorch_lightning import LightningModule
-from pytorch_lightning.utilities.types import EPOCH_OUTPUT, STEP_OUTPUT
+from pytorch_lightning.utilities.types import EPOCH_OUTPUT
 from torch import nn
 
 from hardnet.loss import loss_HardNet, CorrelationPenaltyLoss
-from hardnet.utils import ErrorRateAt95Recall
 from utils import mAP
 
 
@@ -44,39 +42,45 @@ class HardNet(LightningModule, ABC):
     """HardNet model definition
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self,
+                 first_conv: bool = False,
+                 maxpool1: bool = False,
+                 nth: int = 100,
+                 lr: float = 1e-4,
+                 **kwargs):
         super().__init__()
         # self.save_hyperparameters()
         self.corr_penalty = CorrelationPenaltyLoss()
         self.l2norm = L2Norm()
-        self.lr = 0.1
-        self.nth = 2
+        self.lr = lr
+        self.nth = nth
         self.size = 512
-        self.labels, self.distances = [], []
-        self.features = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=(3, 3), padding=1, bias=False),
-            nn.BatchNorm2d(32, affine=False),
-            nn.ReLU(),
-            nn.Conv2d(32, 32, kernel_size=(3, 3), padding=1, bias=False),
-            nn.BatchNorm2d(32, affine=False),
-            nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=(3, 3), stride=(2, 2), padding=1, bias=False),
-            nn.BatchNorm2d(64, affine=False),
-            nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=(3, 3), padding=1, bias=False),
-            nn.BatchNorm2d(64, affine=False),
-            nn.ReLU(),
-            nn.Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=1, bias=False),
-            nn.BatchNorm2d(128, affine=False),
-            nn.ReLU(),
-            nn.Conv2d(128, 128, kernel_size=(3, 3), padding=1, bias=False),
-            nn.BatchNorm2d(128, affine=False),
-            nn.ReLU(),
-            nn.Dropout(0.3),
-            nn.Conv2d(128, 128, kernel_size=(8, 8), bias=False),
-            nn.BatchNorm2d(128, affine=False),
-        )
-        self.features.apply(weights_init)
+        # self.labels, self.distances = [], []
+        # self.features = nn.Sequential(
+        #     nn.Conv2d(3, 32, kernel_size=(3, 3), padding=1, bias=False),
+        #     nn.BatchNorm2d(32, affine=False),
+        #     nn.ReLU(),
+        #     nn.Conv2d(32, 32, kernel_size=(3, 3), padding=1, bias=False),
+        #     nn.BatchNorm2d(32, affine=False),
+        #     nn.ReLU(),
+        #     nn.Conv2d(32, 64, kernel_size=(3, 3), stride=(2, 2), padding=1, bias=False),
+        #     nn.BatchNorm2d(64, affine=False),
+        #     nn.ReLU(),
+        #     nn.Conv2d(64, 64, kernel_size=(3, 3), padding=1, bias=False),
+        #     nn.BatchNorm2d(64, affine=False),
+        #     nn.ReLU(),
+        #     nn.Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=1, bias=False),
+        #     nn.BatchNorm2d(128, affine=False),
+        #     nn.ReLU(),
+        #     nn.Conv2d(128, 128, kernel_size=(3, 3), padding=1, bias=False),
+        #     nn.BatchNorm2d(128, affine=False),
+        #     nn.ReLU(),
+        #     nn.Dropout(0.3),
+        #     nn.Conv2d(128, 128, kernel_size=(8, 8), bias=False),
+        #     nn.BatchNorm2d(128, affine=False),
+        # )
+        self.encoder = resnet18_encoder(first_conv, maxpool1)
+        self.encoder.apply(weights_init)
         return
 
     def step(self, batch, batch_idx, phase):
@@ -90,17 +94,17 @@ class HardNet(LightningModule, ABC):
             mapk = mAP(out_a[:self.size], label[:self.size])
             rez['mapk'] = mapk
             self.log_dict({f"step_{phase}_mapk": mapk}, on_step=True, on_epoch=False)
-        if phase == 'val':
-            dists = torch.sqrt(torch.sum((out_a - out_p) ** 2, 1))  # euclidean distance
-            self.distances.append(dists.data.cpu().numpy().reshape(-1, 1))
-            ll = label.data.cpu().numpy().reshape(-1, 1)
-            self.labels.append(ll)
+        # if phase == 'val':
+        #     dists = torch.sqrt(torch.sum((out_a - out_p) ** 2, 1))  # euclidean distance
+        #     self.distances.append(dists.data.cpu().numpy().reshape(-1, 1))
+        #     ll = label.data.cpu().numpy().reshape(-1, 1)
+        #     self.labels.append(ll)
         rez['loss'] = loss
         self.log_dict({f"step_{phase}_loss": loss}, on_step=True, on_epoch=False)
         return rez
 
     def forward(self, input):
-        x_features = self.features(input_norm(input))
+        x_features = self.encoder(input_norm(input))
         x = x_features.view(x_features.size(0), -1)
         return self.l2norm(x)
 
@@ -115,15 +119,16 @@ class HardNet(LightningModule, ABC):
         return self.step(batch, batch_idx, 'val')
 
     def validation_epoch_end(self, outputs: EPOCH_OUTPUT) -> None:
-        labels = np.vstack(self.labels)
-        distances = np.vstack(self.distances)
-        fpr95 = ErrorRateAt95Recall(labels, 1.0 / (distances + 1e-8))
-        self.log_dict({f"val_fpr95": fpr95}, on_step=False, on_epoch=True)
+        # labels = np.vstack(self.labels)
+        # distances = np.vstack(self.distances)
+        # fpr95 = ErrorRateAt95Recall(labels, 1.0 / (distances + 1e-8))
+        # print(outputs)
+        # self.log_dict({f"val_fpr95": fpr95}, on_step=False, on_epoch=True)
         self.log_dict({f"val_loss": torch.mean(torch.Tensor([out['loss'] for out in outputs]))}, on_step=False,
                       on_epoch=True)
-        self.log_dict({f"val_mapk": torch.mean(torch.Tensor([out['mapk'] for out in outputs]))}, on_step=False,
+        self.log_dict({f"val_mapk": torch.mean(torch.Tensor([out['mapk'] for out in outputs if 'mapk' in out]))}, on_step=False,
                       on_epoch=True)
-        self.labels, self.distances = [], []
+        # self.labels, self.distances = [], []
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)
