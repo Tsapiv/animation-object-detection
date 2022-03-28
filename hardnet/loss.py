@@ -29,7 +29,7 @@ def distance_matrix_vector(anchor, positive):
                        - 2.0 * torch.bmm(anchor.unsqueeze(0), torch.t(positive).unsqueeze(0)).squeeze(0)) + eps)
 
 
-def loss_HardNet(anchor: torch.Tensor, positive, margin=1.0, batch_reduce='min', loss_type="triplet_margin"):
+def HardNetLoss(anchor: torch.Tensor, positive, margin=1.0, batch_reduce='min', loss_type="triplet_margin"):
     """HardNet margin loss - calculates loss based on distance matrix based on positive distance and closest negative distance.
     """
 

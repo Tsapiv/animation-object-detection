@@ -6,7 +6,7 @@ from pytorch_lightning import LightningModule
 from pytorch_lightning.utilities.types import EPOCH_OUTPUT
 from torch import nn
 
-from hardnet.loss import loss_HardNet, CorrelationPenaltyLoss
+from hardnet.loss import HardNetLoss, CorrelationPenaltyLoss
 from utils import mAP
 
 
@@ -55,31 +55,31 @@ class HardNet(LightningModule, ABC):
         self.lr = lr
         self.nth = nth
         self.size = 512
-        # self.labels, self.distances = [], []
-        # self.features = nn.Sequential(
-        #     nn.Conv2d(3, 32, kernel_size=(3, 3), padding=1, bias=False),
-        #     nn.BatchNorm2d(32, affine=False),
-        #     nn.ReLU(),
-        #     nn.Conv2d(32, 32, kernel_size=(3, 3), padding=1, bias=False),
-        #     nn.BatchNorm2d(32, affine=False),
-        #     nn.ReLU(),
-        #     nn.Conv2d(32, 64, kernel_size=(3, 3), stride=(2, 2), padding=1, bias=False),
-        #     nn.BatchNorm2d(64, affine=False),
-        #     nn.ReLU(),
-        #     nn.Conv2d(64, 64, kernel_size=(3, 3), padding=1, bias=False),
-        #     nn.BatchNorm2d(64, affine=False),
-        #     nn.ReLU(),
-        #     nn.Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=1, bias=False),
-        #     nn.BatchNorm2d(128, affine=False),
-        #     nn.ReLU(),
-        #     nn.Conv2d(128, 128, kernel_size=(3, 3), padding=1, bias=False),
-        #     nn.BatchNorm2d(128, affine=False),
-        #     nn.ReLU(),
-        #     nn.Dropout(0.3),
-        #     nn.Conv2d(128, 128, kernel_size=(8, 8), bias=False),
-        #     nn.BatchNorm2d(128, affine=False),
-        # )
-        self.encoder = resnet18_encoder(first_conv, maxpool1)
+        self.labels, self.distances = [], []
+        self.encoder = nn.Sequential(
+            nn.Conv2d(3, 32, kernel_size=(3, 3), padding=1, bias=False),
+            nn.BatchNorm2d(32, affine=False),
+            nn.ReLU(),
+            nn.Conv2d(32, 32, kernel_size=(3, 3), padding=1, bias=False),
+            nn.BatchNorm2d(32, affine=False),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=(3, 3), stride=(2, 2), padding=1, bias=False),
+            nn.BatchNorm2d(64, affine=False),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, kernel_size=(3, 3), padding=1, bias=False),
+            nn.BatchNorm2d(64, affine=False),
+            nn.ReLU(),
+            nn.Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=1, bias=False),
+            nn.BatchNorm2d(128, affine=False),
+            nn.ReLU(),
+            nn.Conv2d(128, 128, kernel_size=(3, 3), padding=1, bias=False),
+            nn.BatchNorm2d(128, affine=False),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Conv2d(128, 128, kernel_size=(8, 8), bias=False),
+            nn.BatchNorm2d(128, affine=False),
+        )
+        # self.encoder = resnet18_encoder(first_conv, maxpool1)
         self.encoder.apply(weights_init)
         return
 
@@ -87,7 +87,7 @@ class HardNet(LightningModule, ABC):
         rez = {}
         (a, p, n), label = batch
         out_a, out_p = self(a), self(p)
-        loss = loss_HardNet(out_a, out_p)
+        loss = HardNetLoss(out_a, out_p)
         if phase == 'train':
             loss += self.corr_penalty(out_a)
         if batch_idx % self.nth == 0 and phase == 'val':
